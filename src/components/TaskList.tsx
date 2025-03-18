@@ -7,27 +7,58 @@ interface TaskListProps {
   tasks: Task[];
   onToggleComplete: (taskId: string) => void;
   onRemove: (taskId: string) => void;
+  onToggleImportance: (taskId: string) => void;
+  onUpdateDueDate: (taskId: string, dueDate?: number) => void;
+  showCompleted?: boolean;
 }
 
 const TaskList: React.FC<TaskListProps> = ({ 
   tasks, 
   onToggleComplete, 
-  onRemove 
+  onRemove,
+  onToggleImportance,
+  onUpdateDueDate,
+  showCompleted = false
 }) => {
-  if (tasks.length === 0) {
+  // Filter tasks based on showCompleted flag
+  const filteredTasks = showCompleted 
+    ? tasks.filter(task => task.completed)
+    : tasks.filter(task => !task.completed);
+
+  if (filteredTasks.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground animate-fade-in">
-        <p className="text-sm">Nenhuma tarefa adicionada</p>
+        <p className="text-sm">
+          {showCompleted 
+            ? "Nenhuma tarefa concluída" 
+            : "Nenhuma tarefa adicionada"}
+        </p>
       </div>
     );
   }
 
-  const sortedTasks = [...tasks].sort((a, b) => {
-    // First by completion status (incomplete first)
-    if (a.completed !== b.completed) {
-      return a.completed ? 1 : -1;
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
+    // If we're showing completed tasks, sort by completion date (newest first)
+    if (showCompleted) {
+      return b.createdAt - a.createdAt;
     }
-    // Then by creation date (newest first)
+    
+    // If not showing completed tasks:
+    // First by importance (important first)
+    if (a.important !== b.important) {
+      return a.important ? -1 : 1;
+    }
+    
+    // Then by due date (soonest first)
+    if (a.dueDate && b.dueDate) {
+      return a.dueDate - b.dueDate;
+    }
+    
+    // Tasks with due dates come before tasks without
+    if (a.dueDate && !b.dueDate) return -1;
+    if (!a.dueDate && b.dueDate) return 1;
+    
+    // Finally by creation date (newest first)
     return b.createdAt - a.createdAt;
   });
 
@@ -39,6 +70,8 @@ const TaskList: React.FC<TaskListProps> = ({
           task={task}
           onToggleComplete={onToggleComplete}
           onRemove={onRemove}
+          onToggleImportance={onToggleImportance}
+          onUpdateDueDate={onUpdateDueDate}
         />
       ))}
     </div>

@@ -5,6 +5,8 @@ export interface Task {
   completed: boolean;
   owner: 'matheus' | 'ana';
   createdAt: number;
+  important?: boolean;
+  dueDate?: number; // Optional due date as timestamp
 }
 
 export type TasksState = {
@@ -38,7 +40,9 @@ export const saveTasks = (tasks: TasksState): void => {
 export const addTask = (
   tasks: TasksState,
   owner: 'matheus' | 'ana',
-  text: string
+  text: string,
+  important: boolean = false,
+  dueDate?: number
 ): TasksState => {
   if (!text.trim()) return tasks;
   
@@ -48,6 +52,8 @@ export const addTask = (
     completed: false,
     owner,
     createdAt: Date.now(),
+    important,
+    dueDate
   };
   
   return {
@@ -81,3 +87,55 @@ export const toggleTaskCompletion = (
     ),
   };
 };
+
+export const toggleTaskImportance = (
+  tasks: TasksState,
+  owner: 'matheus' | 'ana',
+  taskId: string
+): TasksState => {
+  return {
+    ...tasks,
+    [owner]: tasks[owner].map(task => 
+      task.id === taskId 
+        ? { ...task, important: !task.important } 
+        : task
+    ),
+  };
+};
+
+export const updateTaskDueDate = (
+  tasks: TasksState,
+  owner: 'matheus' | 'ana',
+  taskId: string,
+  dueDate?: number
+): TasksState => {
+  return {
+    ...tasks,
+    [owner]: tasks[owner].map(task => 
+      task.id === taskId 
+        ? { ...task, dueDate } 
+        : task
+    ),
+  };
+};
+
+export const getOverdueTasks = (tasks: TasksState): Task[] => {
+  const now = Date.now();
+  const allTasks = [...tasks.matheus, ...tasks.ana];
+  
+  return allTasks.filter(task => 
+    !task.completed && 
+    task.dueDate !== undefined && 
+    task.dueDate < now
+  );
+};
+
+export const getImportantTasks = (tasks: TasksState): Task[] => {
+  const allTasks = [...tasks.matheus, ...tasks.ana];
+  
+  return allTasks.filter(task => 
+    !task.completed && 
+    task.important === true
+  );
+};
+

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { addTask, loadTasks, removeTask, saveTasks, TasksState, toggleTaskCompletion, toggleTaskImportance, updateTaskDueDate } from '@/utils/localStorage';
+import { addTask, loadTasks, removeTask, saveTasks, TasksState, toggleTaskCompletion, toggleTaskImportance } from '@/utils/localStorage';
 import TaskList from '@/components/TaskList';
 import AddTaskForm from '@/components/AddTaskForm';
 import { toast } from '@/hooks/use-toast';
@@ -27,8 +27,8 @@ const Index = () => {
     }
   }, [tasks, initialLoad]);
 
-  const handleAddTask = (owner: 'matheus' | 'ana', text: string, important: boolean = false, dueDate?: number) => {
-    const updatedTasks = addTask(tasks, owner, text, important, dueDate);
+  const handleAddTask = (owner: 'matheus' | 'ana', text: string, important: boolean = false) => {
+    const updatedTasks = addTask(tasks, owner, text, important);
     setTasks(updatedTasks);
     toast({
       description: `Tarefa adicionada para ${owner === 'matheus' ? 'Matheus' : 'Ana'}.`,
@@ -51,11 +51,6 @@ const Index = () => {
   
   const handleToggleImportance = (owner: 'matheus' | 'ana', taskId: string) => {
     const updatedTasks = toggleTaskImportance(tasks, owner, taskId);
-    setTasks(updatedTasks);
-  };
-  
-  const handleUpdateDueDate = (owner: 'matheus' | 'ana', taskId: string, dueDate?: number) => {
-    const updatedTasks = updateTaskDueDate(tasks, owner, taskId, dueDate);
     setTasks(updatedTasks);
   };
 
@@ -83,11 +78,10 @@ const Index = () => {
             name="matheus"
             displayName="Matheus"
             tasks={tasks.matheus}
-            onAddTask={(text, important, dueDate) => handleAddTask('matheus', text, important, dueDate)}
+            onAddTask={(text, important) => handleAddTask('matheus', text, important)}
             onRemoveTask={(taskId) => handleRemoveTask('matheus', taskId)}
             onToggleComplete={(taskId) => handleToggleComplete('matheus', taskId)}
             onToggleImportance={(taskId) => handleToggleImportance('matheus', taskId)}
-            onUpdateDueDate={(taskId, dueDate) => handleUpdateDueDate('matheus', taskId, dueDate)}
           />
           
           {/* Ana's section */}
@@ -95,11 +89,10 @@ const Index = () => {
             name="ana"
             displayName="Ana"
             tasks={tasks.ana}
-            onAddTask={(text, important, dueDate) => handleAddTask('ana', text, important, dueDate)}
+            onAddTask={(text, important) => handleAddTask('ana', text, important)}
             onRemoveTask={(taskId) => handleRemoveTask('ana', taskId)}
             onToggleComplete={(taskId) => handleToggleComplete('ana', taskId)}
             onToggleImportance={(taskId) => handleToggleImportance('ana', taskId)}
-            onUpdateDueDate={(taskId, dueDate) => handleUpdateDueDate('ana', taskId, dueDate)}
           />
         </div>
 
@@ -115,11 +108,10 @@ interface PersonSectionProps {
   name: 'matheus' | 'ana';
   displayName: string;
   tasks: any[];
-  onAddTask: (text: string, important?: boolean, dueDate?: number) => void;
+  onAddTask: (text: string, important?: boolean) => void;
   onRemoveTask: (taskId: string) => void;
   onToggleComplete: (taskId: string) => void;
   onToggleImportance: (taskId: string) => void;
-  onUpdateDueDate: (taskId: string, dueDate?: number) => void;
 }
 
 const PersonSection: React.FC<PersonSectionProps> = ({
@@ -129,8 +121,7 @@ const PersonSection: React.FC<PersonSectionProps> = ({
   onAddTask,
   onRemoveTask,
   onToggleComplete,
-  onToggleImportance,
-  onUpdateDueDate
+  onToggleImportance
 }) => {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.completed).length;
@@ -164,7 +155,6 @@ const PersonSection: React.FC<PersonSectionProps> = ({
           onToggleComplete={onToggleComplete}
           onRemove={onRemoveTask}
           onToggleImportance={onToggleImportance}
-          onUpdateDueDate={onUpdateDueDate}
         />
       </div>
     </section>

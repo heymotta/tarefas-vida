@@ -1,29 +1,23 @@
 
 import React, { useState } from 'react';
-import { PlusCircle, Calendar, Star } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { PlusCircle, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ptBR } from 'date-fns/locale';
 
 interface AddTaskFormProps {
-  onAddTask: (text: string, important?: boolean, dueDate?: number) => void;
+  onAddTask: (text: string, important?: boolean) => void;
   owner: 'matheus' | 'ana';
 }
 
 const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, owner }) => {
   const [text, setText] = useState('');
-  const [date, setDate] = useState<Date | undefined>(undefined);
   const [important, setImportant] = useState(false);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (text.trim()) {
-      onAddTask(text, important, date?.getTime());
+      onAddTask(text, important);
       setText('');
-      setDate(undefined);
       setImportant(false);
     }
   };
@@ -43,31 +37,6 @@ const AddTaskForm: React.FC<AddTaskFormProps> = ({ onAddTask, owner }) => {
         />
         
         <div className="flex gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                type="button" 
-                variant="outline" 
-                className={cn(
-                  "px-3 h-11 dark:bg-black/10",
-                  date && "text-primary"
-                )}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                {date ? format(date, "dd/MM", { locale: ptBR }) : "Data"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <CalendarComponent
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-                locale={ptBR}
-              />
-            </PopoverContent>
-          </Popover>
-          
           <Button
             type="button"
             variant="outline"

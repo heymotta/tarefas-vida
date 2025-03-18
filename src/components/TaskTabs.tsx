@@ -9,7 +9,6 @@ interface TaskTabsProps {
   onToggleComplete: (taskId: string) => void;
   onRemove: (taskId: string) => void;
   onToggleImportance: (taskId: string) => void;
-  onUpdateDueDate: (taskId: string, dueDate?: number) => void;
 }
 
 const TaskTabs: React.FC<TaskTabsProps> = ({
@@ -17,7 +16,6 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
   onToggleComplete,
   onRemove,
   onToggleImportance,
-  onUpdateDueDate,
 }) => {
   const completedTasksCount = tasks.filter(task => task.completed).length;
   
@@ -41,7 +39,6 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
           onToggleComplete={onToggleComplete}
           onRemove={onRemove}
           onToggleImportance={onToggleImportance}
-          onUpdateDueDate={onUpdateDueDate}
           showCompleted={false}
         />
       </TabsContent>
@@ -52,7 +49,6 @@ const TaskTabs: React.FC<TaskTabsProps> = ({
           onToggleComplete={onToggleComplete}
           onRemove={onRemove}
           onToggleImportance={onToggleImportance}
-          onUpdateDueDate={onUpdateDueDate}
           showCompleted={true}
         />
       </TabsContent>

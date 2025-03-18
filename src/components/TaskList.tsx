@@ -8,7 +8,6 @@ interface TaskListProps {
   onToggleComplete: (taskId: string) => void;
   onRemove: (taskId: string) => void;
   onToggleImportance: (taskId: string) => void;
-  onUpdateDueDate: (taskId: string, dueDate?: number) => void;
   showCompleted?: boolean;
 }
 
@@ -17,7 +16,6 @@ const TaskList: React.FC<TaskListProps> = ({
   onToggleComplete, 
   onRemove,
   onToggleImportance,
-  onUpdateDueDate,
   showCompleted = false
 }) => {
   // Filter tasks based on showCompleted flag
@@ -49,15 +47,6 @@ const TaskList: React.FC<TaskListProps> = ({
       return a.important ? -1 : 1;
     }
     
-    // Then by due date (soonest first)
-    if (a.dueDate && b.dueDate) {
-      return a.dueDate - b.dueDate;
-    }
-    
-    // Tasks with due dates come before tasks without
-    if (a.dueDate && !b.dueDate) return -1;
-    if (!a.dueDate && b.dueDate) return 1;
-    
     // Finally by creation date (newest first)
     return b.createdAt - a.createdAt;
   });
@@ -71,7 +60,6 @@ const TaskList: React.FC<TaskListProps> = ({
           onToggleComplete={onToggleComplete}
           onRemove={onRemove}
           onToggleImportance={onToggleImportance}
-          onUpdateDueDate={onUpdateDueDate}
         />
       ))}
     </div>

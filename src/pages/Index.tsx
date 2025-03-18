@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { addTask, loadTasks, removeTask, saveTasks, TasksState, toggleTaskCompletion, toggleTaskImportance } from '@/utils/localStorage';
 import TaskList from '@/components/TaskList';
@@ -8,36 +7,75 @@ import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import TaskTabs from '@/components/TaskTabs';
 import NotificationOverlay from '@/components/NotificationOverlay';
+import { fetchTasks, addTaskToSupabase, updateTaskInSupabase, deleteTaskFromSupabase } from '@/utils/supabaseUtils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Index = () => {
-  const [tasks, setTasks] = useState<TasksState>({ matheus: [], ana: [] });
+  const queryClient = useQueryClient();
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Load tasks from localStorage on component mount
-  useEffect(() => {
-    const savedTasks = loadTasks();
-    setTasks(savedTasks);
-    setInitialLoad(false);
-  }, []);
+  // Fetch tasks from Supabase
+  const { data: tasks = { matheus: [], ana: [] }, isLoading } = useQuery({
+    queryKey: ['tasks'],
+    queryFn: fetchTasks,
+  });
 
-  // Save tasks to localStorage whenever they change (except on initial load)
-  useEffect(() => {
-    if (!initialLoad) {
-      saveTasks(tasks);
+  // Add task mutation
+  const addTaskMutation = useMutation({
+    mutationFn: (params: { owner: 'matheus' | 'ana', text: string, important?: boolean }) => {
+      const newTask = {
+        text: params.text,
+        completed: false,
+        owner: params.owner,
+        createdAt: Date.now(),
+        important: params.important || false
+      };
+      return addTaskToSupabase(newTask);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     }
-  }, [tasks, initialLoad]);
+  });
+
+  // Toggle task completion mutation
+  const toggleCompletionMutation = useMutation({
+    mutationFn: ({ owner, taskId, isCompleted }: { owner: 'matheus' | 'ana', taskId: string, isCompleted: boolean }) => {
+      return updateTaskInSupabase(taskId, { completed: !isCompleted });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    }
+  });
+
+  // Toggle task importance mutation
+  const toggleImportanceMutation = useMutation({
+    mutationFn: ({ owner, taskId, isImportant }: { owner: 'matheus' | 'ana', taskId: string, isImportant?: boolean }) => {
+      return updateTaskInSupabase(taskId, { important: !(isImportant || false) });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    }
+  });
+
+  // Remove task mutation
+  const removeTaskMutation = useMutation({
+    mutationFn: (taskId: string) => {
+      return deleteTaskFromSupabase(taskId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    }
+  });
 
   const handleAddTask = (owner: 'matheus' | 'ana', text: string, important: boolean = false) => {
-    const updatedTasks = addTask(tasks, owner, text, important);
-    setTasks(updatedTasks);
+    addTaskMutation.mutate({ owner, text, important });
     toast({
       description: `Tarefa adicionada para ${owner === 'matheus' ? 'Matheus' : 'Ana'}.`,
     });
   };
 
   const handleRemoveTask = (owner: 'matheus' | 'ana', taskId: string) => {
-    const updatedTasks = removeTask(tasks, owner, taskId);
-    setTasks(updatedTasks);
+    removeTaskMutation.mutate(taskId);
     toast({
       description: 'Tarefa removida.',
       variant: 'destructive',
@@ -45,14 +83,28 @@ const Index = () => {
   };
 
   const handleToggleComplete = (owner: 'matheus' | 'ana', taskId: string) => {
-    const updatedTasks = toggleTaskCompletion(tasks, owner, taskId);
-    setTasks(updatedTasks);
+    const taskList = tasks[owner];
+    const task = taskList.find(t => t.id === taskId);
+    if (task) {
+      toggleCompletionMutation.mutate({ owner, taskId, isCompleted: task.completed });
+    }
   };
   
   const handleToggleImportance = (owner: 'matheus' | 'ana', taskId: string) => {
-    const updatedTasks = toggleTaskImportance(tasks, owner, taskId);
-    setTasks(updatedTasks);
+    const taskList = tasks[owner];
+    const task = taskList.find(t => t.id === taskId);
+    if (task) {
+      toggleImportanceMutation.mutate({ owner, taskId, isImportant: task.important });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-xl">Carregando tarefas...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/50 px-4 dark:from-background dark:to-secondary/10">
@@ -155,6 +207,7 @@ const PersonSection: React.FC<PersonSectionProps> = ({
           onToggleComplete={onToggleComplete}
           onRemove={onRemoveTask}
           onToggleImportance={onToggleImportance}
+          onUpdateDueDate={() => {}} // Empty function since we don't have due dates
         />
       </div>
     </section>

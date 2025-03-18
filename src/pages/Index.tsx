@@ -207,7 +207,6 @@ const PersonSection: React.FC<PersonSectionProps> = ({
           onToggleComplete={onToggleComplete}
           onRemove={onRemoveTask}
           onToggleImportance={onToggleImportance}
-          onUpdateDueDate={() => {}} // Empty function since we don't have due dates
         />
       </div>
     </section>

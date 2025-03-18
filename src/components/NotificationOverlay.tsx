@@ -26,33 +26,10 @@ const NotificationOverlay: React.FC<NotificationOverlayProps> = ({ tasks, onTogg
   const [showImportantDialog, setShowImportantDialog] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
 
-  // Check for overdue tasks when tasks change
+  // Check for important tasks when tasks change
   useEffect(() => {
     const now = Date.now();
     const allTasks = [...tasks];
-    
-    const overdueItems = allTasks.filter(task => 
-      !task.completed && 
-      task.dueDate !== undefined && 
-      task.dueDate < now
-    );
-    
-    setOverdueTasks(overdueItems);
-    
-    // Show toasts for newly overdue tasks
-    if (overdueItems.length > 0) {
-      overdueItems.forEach(task => {
-        // Only show toast for tasks that have become overdue in the last minute
-        // to avoid spamming the user with notifications on load
-        if (now - task.dueDate! < 60000) {
-          toast({
-            title: "Tarefa atrasada",
-            description: `"${task.text}" está atrasada.`,
-            variant: "destructive",
-          });
-        }
-      });
-    }
     
     // Check for important tasks
     const importantItems = allTasks.filter(task => 
@@ -61,6 +38,7 @@ const NotificationOverlay: React.FC<NotificationOverlayProps> = ({ tasks, onTogg
     );
     
     setImportantTasks(importantItems);
+    setOverdueTasks([]);
     
   }, [tasks]);
   
@@ -95,11 +73,6 @@ const NotificationOverlay: React.FC<NotificationOverlayProps> = ({ tasks, onTogg
               <AlertDialogTitle>Lembrete de Tarefa Importante</AlertDialogTitle>
               <AlertDialogDescription>
                 Você tem uma tarefa importante: <strong>{currentTask.text}</strong>
-                {currentTask.dueDate && (
-                  <p className="mt-2">
-                    Data limite: {format(new Date(currentTask.dueDate), "dd 'de' MMMM", { locale: ptBR })}
-                  </p>
-                )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

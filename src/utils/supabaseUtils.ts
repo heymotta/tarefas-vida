@@ -19,7 +19,7 @@ export const fetchTasks = async (): Promise<TasksState> => {
       id: task.id,
       text: task.text,
       completed: task.completed,
-      owner: 'matheus',
+      owner: 'matheus' as 'matheus', // Explicitly cast to the proper union type
       createdAt: new Date(task.created_at).getTime(),
       important: task.important
     }));
@@ -30,7 +30,7 @@ export const fetchTasks = async (): Promise<TasksState> => {
       id: task.id,
       text: task.text,
       completed: task.completed,
-      owner: 'ana',
+      owner: 'ana' as 'ana', // Explicitly cast to the proper union type
       createdAt: new Date(task.created_at).getTime(),
       important: task.important
     }));
